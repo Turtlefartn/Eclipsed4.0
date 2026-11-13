@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:,">
+<title>Under-30 World Stats · DRAFT</title>
+<link rel="stylesheet" href="./assets/style.css"><style>
+    :root {
+      color-scheme: light dark;
+      --paper: #f2f0e9;
+      --ink: #151b1d;
+      --muted: #596164;
+      --line: #c8c8bf;
+      --panel: #faf9f4;
+      --panel-2: #e8e8e0;
+      --accent: #d34c2f;
+      --accent-2: #0c7b72;
+      --accent-soft: #f0d8ce;
+      --solid: #136c63;
+      --model: #c84c31;
+      --approx: #9d681f;
+      --gap: #767b7d;
+      --shadow: rgba(22, 28, 30, .09);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --paper: #101516;
+        --ink: #f2f0e9;
+        --muted: #adb5b5;
+        --line: #3b4444;
+        --panel: #182021;
+        --panel-2: #222b2c;
+        --accent: #f07555;
+        --accent-2: #43b7a7;
+        --accent-soft: #462820;
+        --solid: #5fcabb;
+        --model: #f07555;
+        --approx: #e1ad5d;
+        --gap: #a2aaac;
+        --shadow: rgba(0, 0, 0, .24);
+      }
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, select { font: inherit; }
+    button { color: inherit; }
+    a { color: inherit; text-underline-offset: 3px; }
+    .shell { width: min(1240px, calc(100% - 40px)); margin: 0 auto; }
+    .mast {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(300px, .55fr);
+      gap: 48px;
+      padding: clamp(40px, 7vw, 88px) 0 52px;
+      border-bottom: 1px solid var(--line);
+    }
+    .kicker {
+      margin: 0 0 14px;
+      color: var(--accent);
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 {
+      margin-bottom: 18px;
+      max-width: 820px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 400;
+      font-size: clamp(3rem, 7.8vw, 7.4rem);
+      line-height: .88;
+      letter-spacing: -.065em;
+    }
+    .lede {
+      max-width: 720px;
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 2vw, 1.28rem);
+      line-height: 1.55;
+    }
+    .global-stats {
+      align-self: end;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-top: 5px solid var(--ink);
+    }
+    .global-stat { padding: 19px 0 3px; }
+    .global-stat + .global-stat { border-left: 1px solid var(--line); padding-left: 22px; }
+    .global-stat strong {
+      display: block;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2.1rem, 4vw, 4.4rem);
+      font-weight: 400;
+      letter-spacing: -.055em;
+      line-height: 1;
+    }
+    .global-stat span { display: block; margin-top: 9px; color: var(--muted); font-size: .83rem; }
+    .dateline { margin-top: 20px; color: var(--muted); font-size: .78rem; }
+
+    .section { padding: 54px 0; border-bottom: 1px solid var(--line); }
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 24px;
+      margin-bottom: 26px;
+    }
+    .section-head h2 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      font-weight: 400;
+      letter-spacing: -.04em;
+      line-height: 1;
+    }
+    .section-head p { max-width: 470px; margin: 0; color: var(--muted); font-size: .9rem; }
+
+    .chart-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 10px 32px var(--shadow);
+      padding: clamp(18px, 3vw, 34px);
+    }
+    .chart-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .chart-top h3 { margin: 0; font-size: 1rem; }
+    .legend { display: flex; gap: 18px; color: var(--muted); font-size: .77rem; }
+    .legend span { display: inline-flex; align-items: center; gap: 7px; }
+    .swatch { width: 18px; height: 7px; background: var(--accent-2); }
+    .swatch.future { background: var(--accent); }
+    .chart-scroll { width: 100%; overflow: hidden; }
+    #projectionChart { width: 100%; height: auto; display: block; min-height: 330px; }
+    .chart-note { margin: 15px 0 0; color: var(--muted); font-size: .77rem; }
+
+    .detail-layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 32px; }
+    .continent-nav {
+      position: sticky;
+      top: 14px;
+      align-self: start;
+      border-top: 4px solid var(--ink);
+    }
+    .continent-nav button {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      background: transparent;
+      padding: 15px 2px;
+      text-align: left;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .continent-nav button small { color: var(--muted); font-weight: 500; }
+    .continent-nav button[aria-selected="true"] { color: var(--accent); }
+    .continent-nav button[aria-selected="true"]::before { content: "→"; margin-right: 8px; }
+    .continent-nav button:focus-visible, .metric-select:focus-visible, .download:focus-visible {
+      outline: 3px solid var(--accent-2); outline-offset: 3px;
+    }
+    .detail-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 24px;
+      align-items: end;
+      padding-bottom: 21px;
+      border-bottom: 1px solid var(--line);
+    }
+    .detail-head h3 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 400;
+      font-size: clamp(2.5rem, 6vw, 5.8rem);
+      letter-spacing: -.055em;
+      line-height: .95;
+    }
+    .detail-total { text-align: right; }
+    .detail-total strong { display: block; font-size: clamp(1.7rem, 3vw, 2.7rem); line-height: 1; }
+    .detail-total span { display: block; margin-top: 6px; color: var(--muted); font-size: .78rem; }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border-left: 1px solid var(--line);
+    }
+    .metric {
+      min-height: 178px;
+      padding: 20px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+    .metric:nth-child(-n+3) { border-top: 1px solid var(--line); }
+    .metric-top { display: flex; justify-content: space-between; gap: 10px; align-items: start; }
+    .metric h4 { margin: 0; font-size: .78rem; line-height: 1.3; }
+    .flag {
+      flex: none;
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      padding: 2px 7px;
+      font-size: .58rem;
+      font-weight: 800;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+    .flag.solid { color: var(--solid); }
+    .flag.model { color: var(--model); }
+    .flag.blend, .flag.approx, .flag.proxy { color: var(--approx); }
+    .flag.gap { color: var(--gap); }
+    .metric .value {
+      display: block;
+      margin: 18px 0 12px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(1.65rem, 3vw, 2.35rem);
+      line-height: 1;
+      letter-spacing: -.035em;
+    }
+    .metric .meta { margin: 0; color: var(--muted); font-size: .72rem; line-height: 1.42; }
+    .metric .source-name { color: var(--ink); font-weight: 700; }
+
+    .compare-tools {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      flex-wrap: wrap;
+      margin-bottom: 22px;
+    }
+    .compare-tools label { font-size: .82rem; font-weight: 800; }
+    .metric-select {
+      min-height: 42px;
+      padding: 8px 35px 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 0;
+      background: var(--panel);
+      color: var(--ink);
+    }
+    .rank-list { display: grid; gap: 9px; }
+    .rank-row {
+      display: grid;
+      grid-template-columns: 130px minmax(0, 1fr) 94px;
+      align-items: center;
+      gap: 14px;
+    }
+    .rank-name { font-size: .82rem; font-weight: 750; }
+    .rank-track { position: relative; height: 26px; background: var(--panel-2); }
+    .rank-bar { height: 100%; min-width: 2px; background: var(--accent-2); transition: width .35s ease; }
+    .rank-value { font-family: Georgia, "Times New Roman", serif; text-align: right; font-size: 1.16rem; }
+    .rank-source { margin-top: 16px; color: var(--muted); font-size: .74rem; }
+
+    .method-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr); gap: 48px; }
+    .method-copy p, .method-copy li { color: var(--muted); }
+    .method-copy ul { padding-left: 20px; }
+    .method-copy strong { color: var(--ink); }
+    .confidence-list { list-style: none; padding: 0; margin: 0; border-top: 4px solid var(--ink); }
+    .confidence-list li { display: grid; grid-template-columns: 72px 1fr; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line); font-size: .79rem; }
+    .confidence-list b { text-transform: uppercase; letter-spacing: .06em; font-size: .68rem; }
+    .sources { columns: 2; column-gap: 42px; margin: 0; padding-left: 20px; }
+    .sources li { break-inside: avoid; margin: 0 0 14px; padding-left: 4px; color: var(--muted); font-size: .78rem; }
+    .sources a { color: var(--ink); font-weight: 700; }
+    .download {
+      margin-top: 26px;
+      min-height: 44px;
+      padding: 10px 15px;
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: var(--paper);
+      cursor: pointer;
+      font-weight: 800;
+    }
+    .download:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .fineprint { padding: 28px 0 42px; color: var(--muted); font-size: .72rem; }
+    .screen-reader { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    @media (max-width: 920px) {
+      .mast { grid-template-columns: 1fr; gap: 34px; }
+      .global-stats { max-width: 560px; }
+      .detail-layout { grid-template-columns: 1fr; }
+      .continent-nav { position: static; display: grid; grid-template-columns: repeat(3, 1fr); border-top-width: 1px; border-left: 1px solid var(--line); }
+      .continent-nav button { border-right: 1px solid var(--line); padding: 12px; }
+      .continent-nav button[aria-selected="true"]::before { display: none; }
+      .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .metric:nth-child(3) { border-top: 0; }
+      .method-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 620px) {
+      .shell { width: min(100% - 24px, 1240px); }
+      .mast { padding-top: 34px; }
+      h1 { font-size: clamp(3rem, 16vw, 5.2rem); }
+      .section { padding: 40px 0; }
+      .section-head { display: block; }
+      .section-head p { margin-top: 13px; }
+      .chart-card { padding: 14px; }
+      .chart-top { display: block; }
+      .legend { margin-top: 10px; }
+      #projectionChart { min-height: 420px; }
+      .continent-nav { grid-template-columns: repeat(2, 1fr); }
+      .detail-head { grid-template-columns: 1fr; }
+      .detail-total { text-align: left; }
+      .metric-grid { grid-template-columns: 1fr; }
+      .metric { min-height: 0; }
+      .metric:nth-child(2) { border-top: 0; }
+      .rank-row { grid-template-columns: 90px minmax(0, 1fr) 72px; gap: 8px; }
+      .sources { columns: 1; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .rank-bar { transition: none; }
+    }
+    @media print {
+      .continent-nav, .compare-tools, .download { display: none !important; }
+      .detail-layout, .method-grid { grid-template-columns: 1fr; }
+      .metric-grid { grid-template-columns: repeat(3, 1fr); }
+      .section { break-inside: avoid; }
+    }
+  </style>
+<style>
+/* Page-local patch (2026-10-25): warnings list for the "Why births are falling" section */
+.warn-list{list-style:none;margin:0;padding:0}
+.warn-list li{padding:14px 0;border-bottom:1px solid var(--line)}
+.warn-list li:first-child{padding-top:2px}
+.warn-list li:last-child{border-bottom:0;padding-bottom:2px}
+.warn-note{color:var(--muted);font-size:.85rem;margin:14px 0 0}
+</style></head>
+<body><div class="draft-banner" style="background:#7a1f1f;color:#fdf6e8;text-align:center;font:600 13px/1.5 system-ui,sans-serif;letter-spacing:.12em;padding:8px 12px">DRAFT — THIS PAGE IS A DRAFT FOR REVIEW. NOT FINAL TEXT.</div>
+<header class="site"><div class="site-inner"><a class="brand" href="https://turtlefartn.github.io/Eclipsed5.0/index.html">Journey to the End of the Universe</a><nav class="main" aria-label="Site"><a href="https://turtlefartn.github.io/Eclipsed5.0/index.html">Home</a><a href="https://turtlefartn.github.io/Eclipsed5.0/who-knows.html">Who Knows?</a><details class="nav-drop" name="sitemenu"><summary>Main Quests</summary><div class="nav-drop-menu"><a href="https://turtlefartn.github.io/Eclipsed5.0/project-84.html">Project 84</a><a href="https://turtlefartn.github.io/Eclipsed5.0/omega42.html">Omega 42</a><a href="https://turtlefartn.github.io/Eclipsed5.0/plan-42.html">Plan 42</a><a href="https://turtlefartn.github.io/Eclipsed5.0/prime-42.html">Prime 42</a><a href="https://turtlefartn.github.io/Eclipsed5.0/proclamation-of-claim.html">Proclamation of Claim</a><a href="https://turtlefartn.github.io/Eclipsed5.0/hear-ts-project-84-work-boats.html">HEAR-TS — Project 84 Work Boats</a><a href="https://turtlefartn.github.io/Eclipsed5.0/arctic-lanes.html">The Arctic</a><a href="https://turtlefartn.github.io/Eclipsed5.0/floating-skyports.html">Floating Skyports</a><a href="https://turtlefartn.github.io/Eclipsed5.0/remote-nature.html">Remote Nature</a><a href="https://turtlefartn.github.io/Eclipsed5.0/capped-volcano.html">Volcano</a><a href="https://turtlefartn.github.io/Eclipsed5.0/space-racing.html">Space Racing</a><a href="https://turtlefartn.github.io/Eclipsed5.0/putting-the-fires-out.html">Putting the Fires Out</a><a href="./chief-of-all-police.html">Chief of All Police</a></div></details><details class="nav-drop" name="sitemenu"><summary>Side Quests</summary><div class="nav-drop-menu"><a href="./side-projects.html">Side Projects</a><a href="./human-recovery-disk.html">Human Recovery Disk</a><a href="./hurricane-suppression-research.html">Hurricane Suppression Research</a><a href="./co2-balls.html">CO2 Balls</a><a href="./doodare-s-diaper-replacement-concept.html">Doodare's — Diaper Replacement Concept</a><a href="./one-terms-of-service.html">One Terms of Service</a><a href="./realizim.html">Realizim</a><a href="./remove-90-of-ads.html">Remove 90% of Ads</a><a href="./stellar-engineering-crash-course.html">Stellar Engineering — Crash Course</a><a href="./under-30-world-stats.html" aria-current="page">Under-30 World Stats</a><a href="./uplift-project.html">Uplift Project</a><a href="./time-out-balls.html">Time-out Balls</a><a href="./collapsible-ocean-tunnel.html">Collapsible Ocean Tunnel</a><a href="./promote-mustards.html">Promote Mustards</a></div></details><a href="https://turtlefartn.github.io/Eclipsed5.0/main-site-pages.html">All Pages</a><a href="https://turtlefartn.github.io/Eclipsed5.0/about.html">About</a></nav></div></header>
+<main class="wrap site-main">
+
+<main>
+<section aria-labelledby="page-title" class="shell mast">
+<div>
+<p class="kicker">Global demographic snapshot · ages 0–29</p>
+<h1 id="page-title">Half the world is under 30.</h1>
+<p class="lede">A continent-by-continent view of the people shaping the next generation — population, age, education, work, health, connectivity and the demographic outlook to 2050.</p>
+<p class="dateline">Compiled 1 Oct 2026 · Core population data: 2023 UN World Population Prospects 2024 · Other indicators: latest reported, mainly 2023–2024</p>
+</div>
+<div>
+<div aria-label="Global headline statistics" class="global-stats">
+<div class="global-stat"><strong id="worldCount">3.88B</strong><span>people aged 0–29 in 2023</span></div>
+<div class="global-stat"><strong>48.0%</strong><span>of humanity</span></div>
+</div>
+<p class="dateline">The total is the sum of the six continental under-30 populations shown below.</p>
+</div>
+</section>
+<section class="section">
+<div class="shell">
+<div class="section-head">
+<h2>Now &amp; 2050</h2>
+<p>Africa is the only continent projected to add hundreds of millions of under-30s. The 2050 figures are modeled; see methodology.</p>
+</div>
+<div class="chart-card">
+<div class="chart-top">
+<h3>Under-30 population by continent, millions</h3>
+<div aria-label="Chart legend" class="legend"><span><i class="swatch"></i>2023</span><span><i class="swatch future"></i>2050 estimate</span></div>
+</div>
+<div class="chart-scroll"><svg aria-labelledby="chartTitle chartDesc" id="projectionChart" role="img"></svg></div>
+<p class="chart-note">2023 bars: UN WPP 2024 via Our World in Data, summed ages 0–29. 2050: UN WPP under-25 projection plus a modeled 25–29 cohort.</p>
+</div>
+</div>
+</section>
+<section class="section" id="continent-detail">
+<div class="shell">
+<div class="section-head">
+<h2>Continental profiles</h2>
+<p>Select a continent. Each profile carries 12 indicators, a data year, a source site and a confidence label.</p>
+</div>
+<div class="detail-layout">
+<nav aria-label="Choose a continent" class="continent-nav" id="continentNav" role="tablist"></nav>
+<div>
+<div class="detail-head">
+<h3 id="continentName">Africa</h3>
+<div class="detail-total"><strong id="continentShare">25.4%</strong><span>of the world's under-30s</span></div>
+</div>
+<div aria-live="polite" class="metric-grid" id="metricGrid" role="tabpanel"></div>
+</div>
+</div>
+</div>
+</section>
+<section class="section">
+<div class="shell">
+<div class="section-head">
+<h2>Compare a metric</h2>
+<p>Rank all six continents on one measure. The source and confidence note update with the selected metric.</p>
+</div>
+<div class="compare-tools">
+<label for="metricSelect">Metric</label>
+<select class="metric-select" id="metricSelect">
+<option value="under30Share">Under-30 share of population</option>
+<option value="under30">Under-30 population</option>
+<option value="globalShare">Share of global under-30s</option>
+<option value="medianAge">Median age</option>
+<option value="projected2050">Projected under-30 population, 2050</option>
+<option value="urban">Urban share (total-population proxy)</option>
+<option value="literacy">Youth literacy</option>
+<option value="unemployment">Youth unemployment</option>
+<option value="fertility">Total fertility rate</option>
+<option value="u5mortality">Under-5 mortality</option>
+<option value="internet">Youth internet use</option>
+</select>
+</div>
+<div class="rank-list" id="rankList"></div>
+<p class="rank-source" id="rankSource"></p>
+</div>
+</section>
+<section class="section">
+<div class="shell method-grid">
+<div class="method-copy">
+<div class="section-head"><h2>Read the estimates carefully</h2></div>
+<p><strong>“Under 30” means ages 0–29.</strong> The headline population counts sum six five-year age groups from the UN WPP 2024 dataset mirrored by Our World in Data. North America includes Northern America, Central America and the Caribbean.</p>
+<ul>
+<li><strong>2050 under-30:</strong> under-25 is the UN medium-variant projection; ages 25–29 are modeled from cohort survival and birth trends.</li>
+<li><strong>Urban/rural:</strong> a total-population proxy. A continent-wide youth-specific breakdown was not found.</li>
+<li><strong>Sex split:</strong> modeled from sex ratio at birth with an adjustment for excess male mortality before age 30.</li>
+<li><strong>Labour and connectivity:</strong> youth means ages 15–24. ILO and ITU regions do not map perfectly to continents, so several values are blended or approximate.</li>
+<li><strong>Oceania literacy:</strong> not reported as a continent aggregate by UIS/WB; the near-universal figure is explicitly an assumption, not a measured regional value.</li>
+</ul>
+<button class="download" id="downloadCsv" type="button">Download all 72 indicators (.csv)</button>
+<span aria-live="polite" class="screen-reader" id="downloadStatus"></span>
+</div>
+<div>
+<ul aria-label="Confidence labels" class="confidence-list">
+<li><b style="color:var(--solid)">Solid</b><span>Structured dataset or published table.</span></li>
+<li><b style="color:var(--approx)">Blend</b><span>Calculated from published subregional values.</span></li>
+<li><b style="color:var(--model)">Model</b><span>Demographic estimate with stated assumptions.</span></li>
+<li><b style="color:var(--approx)">Approx</b><span>Proxy or approximate chart reading.</span></li>
+<li><b style="color:var(--gap)">Gap</b><span>No continent-specific reported value found.</span></li>
+</ul>
+</div>
+</div>
+</section>
+<section class="section">
+<div class="shell">
+<div class="section-head">
+<h2>Why births are falling — warned contributors</h2>
+<p>Fertility collapse is the top human problem in this work: smaller hips, loss of natural-birth ability, inability to breastfeed, hormone imbalances from hormonal birth controls. These are the U.S. Surgeon General warnings that hit women and births directly.</p>
+</div>
+<div class="chart-card">
+<ul class="warn-list">
+<li><strong>Cigarettes, 1984:</strong> SURGEON GENERAL'S WARNING — “Smoking By Pregnant Women May Result in Fetal Injury, Premature Birth, And Low Birth Weight”; smoking “May Complicate Pregnancy.”</li>
+<li><strong>Alcohol, 1988:</strong> “According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects.”</li>
+<li><strong>Cigars:</strong> SURGEON GENERAL WARNING — “Tobacco Use Increases the Risk of Infertility, Stillbirth and Low Birth Weight.”</li>
+<li><strong>Later sets, 2009 / 2020:</strong> “Smoking during pregnancy can harm your baby”; “Smoking during pregnancy stunts fetal growth.”</li>
+</ul>
+<p class="warn-note">Filed as contributors, not a quantified share: the warnings establish harm to individual pregnancies — they don't by themselves prove how much of falling birth rates they account for.</p>
+</div>
+</div>
+</section>
+<section class="section">
+<div class="shell">
+<div class="section-head">
+<h2>Sources</h2>
+<p>Links open the original datasets or publications. All were read for the research on 1 Oct 2026.</p>
+</div>
+<ol class="sources">
+<li><a href="https://ourworldindata.org/grapher/population-by-five-year-age-group.csv?v=1&amp;csvType=filtered&amp;useColumnShortNames=false&amp;tab=chart&amp;country=Africa~Asia~Europe~North%20America~South%20America~Oceania" rel="noopener" target="_blank">Our World in Data / UN WPP 2024</a> — 2023 five-year age groups.</li>
+<li><a href="https://ourworldindata.org/grapher/population-by-age-group-with-projections.csv?v=1&amp;csvType=filtered&amp;useColumnShortNames=false&amp;tab=chart&amp;time=2050&amp;country=Africa~Asia~Europe~North%20America~South%20America~Oceania" rel="noopener" target="_blank">Our World in Data / UN WPP 2024 projections</a> — 2050 medium variant.</li>
+<li><a href="https://database.earth/population/median-age/2024" rel="noopener" target="_blank">database.earth / UN WPP</a> — 2024 median ages.</li>
+<li><a href="https://hal.science/hal-04746583v1/file/pop_soc_626_en.pdf" rel="noopener" target="_blank">INED, Population of the World (2024)</a> — fertility and population context.</li>
+<li><a href="https://www.ilo.org/sites/default/files/2026-08/9789220437612_PDFA_Web_ENG.pdf" rel="noopener" target="_blank">ILO, Global Employment Trends for Youth 2026</a> — 2024 youth unemployment estimates.</li>
+<li><a href="https://www.itu.int/itu-d/reports/statistics/wp-content/uploads/sites/5/2024/11/2402588_1e_Measuring-digital-development-Facts-and-Figures-2024_v4.pdf" rel="noopener" target="_blank">ITU, Facts and Figures 2024</a> — youth internet use.</li>
+<li><a href="https://api.worldbank.org/v2/" rel="noopener" target="_blank">World Bank WDI API</a> — literacy, urbanization, fertility, sex ratio at birth and child mortality series.</li>
+<li><a href="https://social.desa.un.org/world-summit-2025/blog/un-marks-30-years-of-global-youth-action" rel="noopener" target="_blank">UN DESA</a> — corroboration that about half of the global population is under 30.</li>
+</ol>
+</div>
+</section>
+</main>
+<footer class="shell fineprint">Research snapshot, not a live feed. Values carry the year and confidence limits of their source; “approximately” and proxy values should not be read as precise headcounts.</footer>
+
+
+</main>
+<footer class="site"><div class="site-inner"><div class="donate-block"><div class="donate-qrs"><figure><img src="data:image/png;base64,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" alt="QR code for this site" width="104" height="104"><figcaption>The Site</figcaption></figure><figure><img src="data:image/png;base64,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" alt="Zelle donation QR code" width="104" height="104"><figcaption>Donate — Zelle</figcaption></figure><figure><img src="data:image/png;base64,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" alt="ETH donation QR code" width="104" height="104"><figcaption>Donate — ETH</figcaption></figure></div><p class="donate-eth">ETH: <code>0xFd19fc01402ADf9dc7B970695D3bfcCed544c2bA</code></p><p class="contact-line">Contact: <a href="mailto:nahasmatthewj@gmail.com">nahasmatthewj@gmail.com</a> &middot; IG: @unclematt100 &middot; IG: @turtlefartn</p></div>Journey to the End of the Universe &middot; Matthew Joseph Nahas &middot; Hosted on GitHub Pages &middot; <a href="https://turtlefartn.github.io/Eclipsed5.0/index.html">All pages</a></div></footer>
+
+<script>
+    const data = [
+      {
+        name: "Africa", short: "Africa", under30: 987.5, under30Exact: 987466426, under30Share: 66.7, globalShare: 25.4, medianAge: 19.2, projected2050: 1416,
+        sex: "50.5% M / 49.5% F", urban: 46, literacy: 81, unemployment: 10, fertility: 4.0, u5mortality: 65, internet: 52,
+        details: {
+          under30: ["987.5M", "2023 · UN WPP 2024 via OWID", "solid"], under30Share: ["66.7%", "2023 · UN WPP 2024 via OWID", "solid"], globalShare: ["25.4%", "2023 · UN WPP 2024 via OWID", "solid"],
+          medianAge: ["19.2 years", "2024 · database.earth / UN WPP", "solid"], projected2050: ["≈1,416M", "2050 · UN WPP + cohort model; under-25 exact: 1,216M", "model"], sex: ["50.5% M / 49.5% F", "2023 · World Bank sex ratio + mortality adjustment", "model"],
+          urban: ["46% urban / 54% rural", "2024 · World Bank WDI; total-population proxy", "proxy"], literacy: ["≈81%", "2023 · UNESCO UIS via WB; subregional blend", "blend"], unemployment: ["≈10%", "2024 · ILO; SSA and North Africa blend", "blend"],
+          fertility: ["4.0", "2024 · INED / UN WPP 2024", "solid"], u5mortality: ["≈65 per 1,000", "2023 · World Bank / UN IGME; subregional blend", "blend"], internet: ["≈52%", "2024 · ITU chart reading, ages 15–24", "approx"]
+        }
+      },
+      {
+        name: "Asia", short: "Asia", under30: 2186.6, under30Exact: 2186580588, under30Share: 45.8, globalShare: 56.3, medianAge: 32.1, projected2050: 1847,
+        sex: "51.5% M / 48.5% F", urban: 52, literacy: 97, unemployment: 14, fertility: 1.9, u5mortality: 20, internet: 85,
+        details: {
+          under30: ["2,186.6M", "2023 · UN WPP 2024 via OWID", "solid"], under30Share: ["45.8%", "2023 · UN WPP 2024 via OWID", "solid"], globalShare: ["56.3%", "2023 · UN WPP 2024 via OWID", "solid"],
+          medianAge: ["32.1 years", "2024 · database.earth / UN WPP", "solid"], projected2050: ["≈1,847M", "2050 · UN WPP + cohort model; under-25 exact: 1,529M", "model"], sex: ["51.5% M / 48.5% F", "2023 · World Bank sex ratio + mortality adjustment", "model"],
+          urban: ["52% urban / 48% rural", "2024 · World Bank WDI; total-population proxy", "proxy"], literacy: ["≈97%", "2023 · UNESCO UIS via WB; subregional blend", "blend"], unemployment: ["≈14%", "2024 · ILO; subregional blend", "blend"],
+          fertility: ["1.9", "2024 · INED / UN WPP 2024", "solid"], u5mortality: ["≈20 per 1,000", "2023 · World Bank / UN IGME; subregional blend", "blend"], internet: ["≈85%", "2024 · ITU Asia-Pacific chart reading", "approx"]
+        }
+      },
+      {
+        name: "Europe", short: "Europe", under30: 236.9, under30Exact: 236938136, under30Share: 31.7, globalShare: 6.1, medianAge: 42.5, projected2050: 198,
+        sex: "51.1% M / 48.9% F", urban: 75, literacy: 99.8, unemployment: 14, fertility: 1.4, u5mortality: 4, internet: 98,
+        details: {
+          under30: ["236.9M", "2023 · UN WPP 2024 via OWID", "solid"], under30Share: ["31.7%", "2023 · UN WPP 2024 via OWID", "solid"], globalShare: ["6.1%", "2023 · UN WPP 2024 via OWID", "solid"],
+          medianAge: ["42.5 years", "2024 · database.earth / UN WPP", "solid"], projected2050: ["≈198M", "2050 · UN WPP + cohort model; under-25 exact: 164M", "model"], sex: ["51.1% M / 48.9% F", "2023 · World Bank sex ratio + mortality adjustment", "model"],
+          urban: ["75% urban / 25% rural", "2024 · World Bank WDI; total-population proxy", "proxy"], literacy: ["≈99–100%", "2023 · UNESCO UIS via WB (Europe & Central Asia 99.8%)", "solid"], unemployment: ["≈14%", "2024 · ILO; Eastern and N/S/W Europe blend", "blend"],
+          fertility: ["1.4", "2023 · World Bank, EU proxy", "solid"], u5mortality: ["≈4 per 1,000", "2023 · World Bank / UN IGME, EU proxy", "solid"], internet: ["≈98%", "2024 · ITU; youth universality ≥95% achieved", "approx"]
+        }
+      },
+      {
+        name: "North America", short: "N. America", under30: 256.4, under30Exact: 256398516, under30Share: 42.1, globalShare: 6.6, medianAge: 34.9, projected2050: 235,
+        sex: "51.0% M / 49.0% F", urban: 81, literacy: 99, unemployment: 11, fertility: 1.7, u5mortality: 10, internet: 96,
+        details: {
+          under30: ["256.4M", "2023 · UN WPP 2024 via OWID", "solid"], under30Share: ["42.1%", "2023 · UN WPP 2024 via OWID", "solid"], globalShare: ["6.6%", "2023 · UN WPP 2024 via OWID", "solid"],
+          medianAge: ["≈34.9 years", "2024 · database.earth / UN WPP; population-weighted", "blend"], projected2050: ["≈235M", "2050 · UN WPP + cohort model; under-25 exact: 196M", "model"], sex: ["51.0% M / 49.0% F", "2023 · World Bank sex ratio + mortality adjustment", "model"],
+          urban: ["81% urban / 19% rural", "2024 · World Bank WDI; total-population proxy", "proxy"], literacy: ["≈99%", "2022–23 · UNESCO UIS via WB; subregional blend", "blend"], unemployment: ["≈11%", "2024 · ILO; Northern America and LAC blend", "blend"],
+          fertility: ["≈1.7", "2023 · World Bank; subregional blend", "blend"], u5mortality: ["≈10 per 1,000", "2023 · World Bank / UN IGME; subregional blend", "blend"], internet: ["≈96%", "2024 · ITU Americas; youth universality ≥95% achieved", "approx"]
+        }
+      },
+      {
+        name: "Oceania", short: "Oceania", under30: 20.1, under30Exact: 20126843, under30Share: 44.2, globalShare: 0.5, medianAge: 33.1, projected2050: 22,
+        sex: "51.1% M / 48.9% F", urban: 68, literacy: 99, unemployment: 9, fertility: 2.1, u5mortality: 13, internet: 90,
+        details: {
+          under30: ["20.1M", "2023 · UN WPP 2024 via OWID", "solid"], under30Share: ["44.2%", "2023 · UN WPP 2024 via OWID", "solid"], globalShare: ["0.5%", "2023 · UN WPP 2024 via OWID", "solid"],
+          medianAge: ["33.1 years", "2024 · database.earth / UN WPP", "solid"], projected2050: ["≈22M", "2050 · UN WPP + cohort model; under-25 exact: 18.4M", "model"], sex: ["51.1% M / 48.9% F", "2023 · World Bank sex ratio + mortality adjustment", "model"],
+          urban: ["68% urban / 32% rural", "2024 · World Bank WDI; total-population proxy", "proxy"], literacy: ["≈99% assumed", "No UIS/WB continent aggregate reported; near-universal assumption", "gap"], unemployment: ["≈9%", "2024 · ILO SE Asia & Pacific proxy", "approx"],
+          fertility: ["≈2.1", "2023 · World Bank; subregional blend", "blend"], u5mortality: ["≈13 per 1,000", "2023 · World Bank / UN IGME; subregional blend", "blend"], internet: ["≈90%", "2024 · ITU Asia-Pacific plus AUS/NZ context", "approx"]
+        }
+      },
+      {
+        name: "South America", short: "S. America", under30: 194.6, under30Exact: 194609767, under30Share: 44.9, globalShare: 5.0, medianAge: 32.7, projected2050: 154,
+        sex: "50.8% M / 49.2% F", urban: 81, literacy: 99, unemployment: 13, fertility: 1.8, u5mortality: 14, internet: 94,
+        details: {
+          under30: ["194.6M", "2023 · UN WPP 2024 via OWID", "solid"], under30Share: ["44.9%", "2023 · UN WPP 2024 via OWID", "solid"], globalShare: ["5.0%", "2023 · UN WPP 2024 via OWID", "solid"],
+          medianAge: ["32.7 years", "2024 · database.earth / UN WPP", "solid"], projected2050: ["≈154M", "2050 · UN WPP + cohort model; under-25 exact: 127M", "model"], sex: ["50.8% M / 49.2% F", "2023 · World Bank sex ratio + mortality adjustment", "model"],
+          urban: ["81% urban / 19% rural", "2024 · World Bank WDI, LAC proxy", "proxy"], literacy: ["≈99%", "2023 · UNESCO UIS via WB, LAC 98.6%", "solid"], unemployment: ["≈13%", "2024 · ILO, LAC 12.7%", "solid"],
+          fertility: ["1.8", "2023 · World Bank, LAC proxy", "solid"], u5mortality: ["≈14 per 1,000", "2023 · World Bank / UN IGME; population-weighted check", "blend"], internet: ["≈94%", "2024 · ITU Americas; approximate", "approx"]
+        }
+      }
+    ];
+
+    const metricLabels = {
+      under30: "Population under 30",
+      under30Share: "Under-30 share of continent",
+      globalShare: "Share of global under-30s",
+      medianAge: "Median age",
+      projected2050: "Projected under-30, 2050",
+      sex: "Modeled sex split, under-30s",
+      urban: "Urban / rural share",
+      literacy: "Youth literacy, ages 15–24",
+      unemployment: "Youth unemployment, ages 15–24",
+      fertility: "Total fertility rate",
+      u5mortality: "Under-5 mortality",
+      internet: "Youth internet use, ages 15–24"
+    };
+    const metricOrder = ["under30", "under30Share", "globalShare", "medianAge", "projected2050", "sex", "urban", "literacy", "unemployment", "fertility", "u5mortality", "internet"];
+    const compareMeta = {
+      under30Share: { unit: "%", source: "2023 · UN WPP 2024 via Our World in Data · solid" },
+      under30: { unit: "M", source: "2023 · UN WPP 2024 via Our World in Data · solid" },
+      globalShare: { unit: "%", source: "2023 · UN WPP 2024 via Our World in Data · solid" },
+      medianAge: { unit: " years", source: "2024 · database.earth / UN WPP · North America is a weighted blend" },
+      projected2050: { unit: "M", source: "2050 · UN WPP under-25 plus modeled 25–29 cohort" },
+      urban: { unit: "%", source: "2024 · World Bank WDI · total-population proxy, not a youth-specific measure" },
+      literacy: { unit: "%", source: "Latest 2022–23 · UNESCO UIS via World Bank · Oceania is an assumption/data gap" },
+      unemployment: { unit: "%", source: "2024 · ILO · continent mappings include blends and proxies" },
+      fertility: { unit: "", source: "2023–24 · INED / World Bank · children per woman" },
+      u5mortality: { unit: "", source: "2023 · World Bank / UN IGME · deaths per 1,000 live births" },
+      internet: { unit: "%", source: "2024 · ITU · approximate regional chart readings" }
+    };
+
+    function renderNav(activeIndex) {
+      const nav = document.getElementById("continentNav");
+      nav.innerHTML = data.map((d, i) => `<button type="button" role="tab" aria-selected="${i === activeIndex}" tabindex="${i === activeIndex ? 0 : -1}" data-index="${i}"><span>${d.name}</span><small>${d.under30Share}%</small></button>`).join("");
+      nav.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => renderContinent(Number(button.dataset.index)));
+        button.addEventListener("keydown", (event) => {
+          if (event.key !== "ArrowDown" && event.key !== "ArrowRight" && event.key !== "ArrowUp" && event.key !== "ArrowLeft") return;
+          event.preventDefault();
+          const dir = (event.key === "ArrowDown" || event.key === "ArrowRight") ? 1 : -1;
+          const next = (Number(button.dataset.index) + dir + data.length) % data.length;
+          renderContinent(next);
+          document.querySelector(`[data-index="${next}"]`).focus();
+        });
+      });
+    }
+
+    function renderContinent(index) {
+      const d = data[index];
+      renderNav(index);
+      document.getElementById("continentName").textContent = d.name;
+      document.getElementById("continentShare").textContent = `${d.globalShare.toFixed(1)}%`;
+      document.getElementById("metricGrid").innerHTML = metricOrder.map((key) => {
+        const detail = d.details[key];
+        const flagLabel = detail[2] === "proxy" ? "proxy" : detail[2];
+        return `<article class="metric"><div class="metric-top"><h4>${metricLabels[key]}</h4><span class="flag ${detail[2]}">${flagLabel}</span></div><strong class="value">${detail[0]}</strong><p class="meta"><span class="source-name">${detail[1].split(" · ").slice(1).join(" · ") || detail[1]}</span><br>${detail[1].split(" · ")[0]}</p></article>`;
+      }).join("");
+    }
+
+    function renderProjectionChart() {
+      const svg = document.getElementById("projectionChart");
+      const mobile = window.innerWidth < 620;
+      const width = mobile ? 520 : 1000;
+      const height = mobile ? 500 : 390;
+      const left = mobile ? 105 : 130;
+      const right = 30;
+      const top = 28;
+      const bottom = 42;
+      const plotW = width - left - right;
+      const maxValue = Math.max(...data.flatMap(d => [d.under30, d.projected2050]));
+      const roundedMax = Math.ceil(maxValue / 500) * 500;
+      const groupH = (height - top - bottom) / data.length;
+      const barH = mobile ? 11 : 14;
+      const css = getComputedStyle(document.documentElement);
+      const ink = css.getPropertyValue("--ink").trim();
+      const muted = css.getPropertyValue("--muted").trim();
+      const line = css.getPropertyValue("--line").trim();
+      const now = css.getPropertyValue("--accent-2").trim();
+      const future = css.getPropertyValue("--accent").trim();
+      const scale = v => (v / roundedMax) * plotW;
+      const ticks = Array.from({length: roundedMax / 500 + 1}, (_, i) => i * 500);
+      let content = `<title id="chartTitle">Under-30 population in 2023 and projected 2050 by continent</title><desc id="chartDesc">Grouped horizontal bars in millions. Asia is largest in both years; Africa grows from 987.5 million to about 1.416 billion.</desc>`;
+      ticks.forEach(t => {
+        const x = left + scale(t);
+        content += `<line x1="${x}" y1="${top - 8}" x2="${x}" y2="${height-bottom}" stroke="${line}" stroke-width="1"/><text x="${x}" y="${height-12}" fill="${muted}" text-anchor="middle" font-size="12">${t === 0 ? "0" : t.toLocaleString()}</text>`;
+      });
+      data.forEach((d, i) => {
+        const y = top + i * groupH;
+        const nowW = scale(d.under30);
+        const futureW = scale(d.projected2050);
+        const delta = ((d.projected2050 - d.under30) / d.under30) * 100;
+        content += `<text x="${left-12}" y="${y + 22}" fill="${ink}" text-anchor="end" font-size="13" font-weight="700">${d.short}</text>`;
+        content += `<rect x="${left}" y="${y+4}" width="${nowW}" height="${barH}" fill="${now}"><title>${d.name}: ${d.under30.toLocaleString()}M in 2023</title></rect>`;
+        content += `<rect x="${left}" y="${y+barH+9}" width="${futureW}" height="${barH}" fill="${future}"><title>${d.name}: about ${d.projected2050.toLocaleString()}M in 2050</title></rect>`;
+        const labelX = Math.min(left + Math.max(nowW, futureW) + 8, width - 42);
+        content += `<text x="${labelX}" y="${y + barH + 13}" fill="${muted}" font-size="11">${delta >= 0 ? "+" : ""}${delta.toFixed(1)}%</text>`;
+      });
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      svg.innerHTML = content;
+    }
+
+    function renderRanking(key) {
+      const ranked = [...data].sort((a, b) => b[key] - a[key]);
+      const max = Math.max(...ranked.map(d => d[key]));
+      const meta = compareMeta[key];
+      document.getElementById("rankList").innerHTML = ranked.map(d => {
+        const value = d[key];
+        const display = key === "under30" || key === "projected2050" ? value.toLocaleString() : value.toLocaleString(undefined, {maximumFractionDigits: 1});
+        return `<div class="rank-row"><span class="rank-name">${d.name}</span><div class="rank-track" aria-hidden="true"><div class="rank-bar" style="width:${(value/max)*100}%"></div></div><strong class="rank-value">${display}${meta.unit}</strong></div>`;
+      }).join("");
+      document.getElementById("rankSource").textContent = meta.source;
+    }
+
+    function downloadCsv() {
+      const rows = [["Continent", "Variable", "Value", "Year and source", "Confidence"]];
+      data.forEach(d => metricOrder.forEach(key => rows.push([d.name, metricLabels[key], d.details[key][0], d.details[key][1], d.details[key][2]])));
+      const csv = rows.map(row => row.map(cell => `"${String(cell).replaceAll('"', '""')}"`).join(",")).join("\n");
+      const blob = new Blob([csv], {type: "text/csv;charset=utf-8"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "under-30-world-stats-2026-research-snapshot.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      document.getElementById("downloadStatus").textContent = "CSV downloaded.";
+    }
+
+    const worldTotal = data.reduce((sum, d) => sum + d.under30Exact, 0);
+    document.getElementById("worldCount").textContent = `${(worldTotal / 1e9).toFixed(2)}B`;
+    renderContinent(0);
+    renderProjectionChart();
+    renderRanking("under30Share");
+    document.getElementById("metricSelect").addEventListener("change", e => renderRanking(e.target.value));
+    document.getElementById("downloadCsv").addEventListener("click", downloadCsv);
+    let resizeTimer;
+    window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(renderProjectionChart, 120); });
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    if (media.addEventListener) media.addEventListener("change", renderProjectionChart);
+  </script>
+</body></html>
